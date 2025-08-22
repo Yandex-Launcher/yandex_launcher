@@ -5,6 +5,8 @@ on:
     paths-ignore:
       - 'docs/**'
       - '.github/workflows/docs.yml'
+      - 'instance_builder/spec.json'
+      - 'instance_builder/*.sh'
   pull_request:
 
 defaults:

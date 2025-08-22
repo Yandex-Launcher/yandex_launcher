@@ -1,0 +1,23 @@
+{
+    "download_server_base": "https://launcher.ya-mc.tech/data",
+    "replace_download_urls": false,
+    "version_manifest_url": "https://launcher.ya-mc.tech/data/version_manifest.json",
+    "versions": [
+        {
+            "name": "Yandex",
+            "minecraft_version": "1.21.8",
+            "loader_name": "fabric",
+            "loader_version": "0.17.2",
+            "include": [
+                {"path": "mods"},
+                {"path": "config", "overwrite": false},
+                {"path": "options.txt", "overwrite": false},
+                {"path": "servers.dat", "overwrite": false},
+                {"path": "resourcepacks", "delete_extra": false}
+            ],
+            "include_from": "./instance_template/minecraft",
+            "recommended_xmx": "8G"
+        }
+    ],
+    "exec_before_all": "./download_template.sh"
+}

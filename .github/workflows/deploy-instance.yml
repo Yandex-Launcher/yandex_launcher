@@ -1,0 +1,49 @@
+name: Generate & deploy instance
+
+on:
+  push:
+    paths:
+      - 'instance_builder/'
+      - '**.rs'
+      - '.github/workflows/deploy-instance.yml'
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  UPLOAD_TO_SERVER: ${{ github.ref == 'refs/heads/master' && secrets.SSH_KEY != '' && secrets.SERVER_USER != '' && secrets.SERVER_ADDR != '' }}
+  SSH_OPTS: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
+jobs:
+  deploy:
+    name: Deploy instance
+    runs-on: 'ubuntu-latest'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+
+      - name: Generate instance
+        run: |
+          cd instance_builder
+          cargo run --release -p instance_builder -- -s spec.json
+
+      - name: Set up SSH
+        if: ${{ env.UPLOAD_TO_SERVER }}
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_KEY }}
+          known_hosts: no
+
+      - name: Deploy to server
+        if: ${{ env.UPLOAD_TO_SERVER }}
+        env:
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_ADDR: ${{ secrets.SERVER_ADDR }}
+          SERVER_PATH: ${{ secrets.SERVER_DATA_PATH }}
+        run: |
+          TARGET="$SERVER_USER@$SERVER_ADDR:$SERVER_PATH"
+          rsync -av --delete-delay -e "ssh $SSH_OPTS" instance_builder/generated/* $TARGET/
